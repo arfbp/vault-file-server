@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   File, 
@@ -27,6 +26,12 @@ const FileExplorer = () => {
     const rootFiles: any[] = [];
 
     files.forEach(file => {
+      // Add safety check for file.name
+      if (!file.name) {
+        console.warn('File without name detected:', file);
+        return;
+      }
+      
       const pathParts = file.name.split('/');
       if (pathParts.length > 1) {
         const folderName = pathParts[0];
@@ -71,7 +76,7 @@ const FileExplorer = () => {
   };
 
   const canPreview = (file: any) => {
-    return file.type.startsWith('image/') || file.type.startsWith('video/');
+    return file.type && (file.type.startsWith('image/') || file.type.startsWith('video/'));
   };
 
   if (files.length === 0) {
@@ -136,7 +141,7 @@ const FileExplorer = () => {
           <h4 className="font-medium text-sm text-muted-foreground">Files</h4>
           <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
             {currentFiles.map((file, index) => {
-              const IconComponent = getFileIcon(file.type);
+              const IconComponent = getFileIcon(file.type || '');
               return (
                 <div
                   key={`${file.fullPath}-${index}`}
