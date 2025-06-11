@@ -1,8 +1,13 @@
+
 import React, { useCallback, useState } from 'react';
 import { Upload, File, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFileStore } from '@/hooks/useFileStore';
 import { toast } from '@/hooks/use-toast';
+
+interface FileWithPath extends File {
+  uploadPath?: string;
+}
 
 const FileUploadZone = () => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -23,7 +28,7 @@ const FileUploadZone = () => {
     setIsDragOver(false);
     
     const items = Array.from(e.dataTransfer.items);
-    const files: File[] = [];
+    const files: FileWithPath[] = [];
 
     const processItems = async () => {
       for (const item of items) {
@@ -47,14 +52,13 @@ const FileUploadZone = () => {
     processItems();
   }, [addFiles]);
 
-  const processEntry = async (entry: any, files: File[], basePath: string): Promise<void> => {
+  const processEntry = async (entry: any, files: FileWithPath[], basePath: string): Promise<void> => {
     return new Promise<void>((resolve) => {
       if (entry.isFile) {
         entry.file((file: File) => {
-          // Create a file with the path information stored as a property
-          const fileWithPath = Object.assign(file, {
-            name: `${basePath}/${entry.fullPath.slice(1) || file.name}`
-          });
+          // Create a file with path information stored as a separate property
+          const fileWithPath = file as FileWithPath;
+          fileWithPath.uploadPath = `${basePath}/${entry.fullPath.slice(1) || file.name}`;
           files.push(fileWithPath);
           resolve();
         });
@@ -75,12 +79,12 @@ const FileUploadZone = () => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      // Add uploads/ prefix to individual files by modifying the name property
-      const filesWithPath = files.map(file => 
-        Object.assign(file, {
-          name: `uploads/${file.name}`
-        })
-      );
+      // Add uploads/ prefix to individual files using uploadPath property
+      const filesWithPath = files.map(file => {
+        const fileWithPath = file as FileWithPath;
+        fileWithPath.uploadPath = `uploads/${file.name}`;
+        return fileWithPath;
+      });
       addFiles(filesWithPath);
       toast({
         title: "Files uploaded successfully",
@@ -95,9 +99,9 @@ const FileUploadZone = () => {
       // Keep the webkitRelativePath for folder uploads, but add uploads prefix
       const filesWithPath = files.map(file => {
         const relativePath = (file as any).webkitRelativePath || file.name;
-        return Object.assign(file, {
-          name: `uploads/${relativePath}`
-        });
+        const fileWithPath = file as FileWithPath;
+        fileWithPath.uploadPath = `uploads/${relativePath}`;
+        return fileWithPath;
       });
       addFiles(filesWithPath);
       toast({

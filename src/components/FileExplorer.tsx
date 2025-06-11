@@ -28,13 +28,15 @@ const FileExplorer = () => {
     const rootFiles: any[] = [];
 
     files.forEach(file => {
-      // Add safety check for file.name
-      if (!file.name) {
-        console.warn('File without name detected:', file);
+      // Use uploadPath if available, otherwise fall back to name
+      const filePath = file.uploadPath || file.name;
+      
+      if (!filePath) {
+        console.warn('File without path detected:', file);
         return;
       }
       
-      const pathParts = file.name.split('/');
+      const pathParts = filePath.split('/');
       if (pathParts.length > 1) {
         const folderName = pathParts[0];
         if (!folders[folderName]) {
@@ -43,13 +45,13 @@ const FileExplorer = () => {
         folders[folderName].push({
           ...file,
           displayName: pathParts.slice(1).join('/'),
-          fullPath: file.name
+          fullPath: filePath
         });
       } else {
         rootFiles.push({
           ...file,
-          displayName: file.name,
-          fullPath: file.name
+          displayName: filePath,
+          fullPath: filePath
         });
       }
     });

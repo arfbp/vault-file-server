@@ -3,14 +3,14 @@ import { create } from 'zustand';
 
 interface FileItem extends File {
   id?: string;
-  path?: string;
+  uploadPath?: string;
 }
 
 interface FileStore {
   files: FileItem[];
   viewMode: 'grid' | 'list';
   currentFolder: string | null;
-  addFiles: (newFiles: File[]) => void;
+  addFiles: (newFiles: FileItem[]) => void;
   removeFile: (fileId: string) => void;
   setViewMode: (mode: 'grid' | 'list') => void;
   setCurrentFolder: (folder: string | null) => void;
@@ -21,7 +21,7 @@ export const useFileStore = create<FileStore>((set) => ({
   viewMode: 'grid',
   currentFolder: null,
   
-  addFiles: (newFiles: File[]) => {
+  addFiles: (newFiles: FileItem[]) => {
     const filesWithId = newFiles.map(file => ({
       ...file,
       id: `${file.name}-${file.lastModified}-${Math.random()}`,
