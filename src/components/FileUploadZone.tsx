@@ -48,14 +48,13 @@ const FileUploadZone = () => {
     processItems();
   }, [addFiles]);
 
-  const processEntry = async (entry: any, files: File[], path: string = '') => {
+  const processEntry = async (entry: any, files: File[]): Promise<void> => {
     return new Promise<void>((resolve) => {
       if (entry.isFile) {
         entry.file((file: File) => {
-          // Add path information to the file
-          const fileWithPath = new File([file], entry.fullPath || file.name, {
-            type: file.type,
-            lastModified: file.lastModified,
+          // Create a new file object with the full path as the name
+          const fileWithPath = Object.assign(file, {
+            name: entry.fullPath || file.name
           });
           files.push(fileWithPath);
           resolve();
@@ -64,10 +63,12 @@ const FileUploadZone = () => {
         const dirReader = entry.createReader();
         dirReader.readEntries(async (entries: any[]) => {
           for (const childEntry of entries) {
-            await processEntry(childEntry, files, `${path}${entry.name}/`);
+            await processEntry(childEntry, files);
           }
           resolve();
         });
+      } else {
+        resolve();
       }
     });
   };
@@ -141,7 +142,7 @@ const FileUploadZone = () => {
           <input
             type="file"
             id="folder-upload"
-            webkitdirectory=""
+            {...({ webkitdirectory: "" } as any)}
             multiple
             className="hidden"
             onChange={handleFolderSelect}
