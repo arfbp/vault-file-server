@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from 'react';
 import { Upload, File, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,7 +30,7 @@ const FileUploadZone = () => {
         if (item.kind === 'file') {
           const entry = item.webkitGetAsEntry();
           if (entry) {
-            await processEntry(entry, files);
+            await processEntry(entry, files, 'uploads');
           }
         }
       }
@@ -40,7 +39,7 @@ const FileUploadZone = () => {
         addFiles(files);
         toast({
           title: "Files uploaded successfully",
-          description: `${files.length} file(s) have been uploaded.`,
+          description: `${files.length} file(s) have been uploaded to uploads folder.`,
         });
       }
     };
@@ -48,13 +47,14 @@ const FileUploadZone = () => {
     processItems();
   }, [addFiles]);
 
-  const processEntry = async (entry: any, files: File[]): Promise<void> => {
+  const processEntry = async (entry: any, files: File[], basePath: string): Promise<void> => {
     return new Promise<void>((resolve) => {
       if (entry.isFile) {
         entry.file((file: File) => {
-          // Create a new file object with the full path as the name
-          const fileWithPath = Object.assign(file, {
-            name: entry.fullPath || file.name
+          // Create a new file object with the uploads path
+          const fileWithPath = new File([file], `${basePath}/${entry.fullPath.slice(1) || file.name}`, {
+            type: file.type,
+            lastModified: file.lastModified,
           });
           files.push(fileWithPath);
           resolve();
@@ -63,7 +63,7 @@ const FileUploadZone = () => {
         const dirReader = entry.createReader();
         dirReader.readEntries(async (entries: any[]) => {
           for (const childEntry of entries) {
-            await processEntry(childEntry, files);
+            await processEntry(childEntry, files, basePath);
           }
           resolve();
         });
@@ -76,10 +76,17 @@ const FileUploadZone = () => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      addFiles(files);
+      // Add uploads/ prefix to individual files
+      const filesWithPath = files.map(file => 
+        new File([file], `uploads/${file.name}`, {
+          type: file.type,
+          lastModified: file.lastModified,
+        })
+      );
+      addFiles(filesWithPath);
       toast({
         title: "Files uploaded successfully",
-        description: `${files.length} file(s) have been uploaded.`,
+        description: `${files.length} file(s) have been uploaded to uploads folder.`,
       });
     }
   };
@@ -87,10 +94,18 @@ const FileUploadZone = () => {
   const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      addFiles(files);
+      // Keep the webkitRelativePath for folder uploads, but add uploads prefix
+      const filesWithPath = files.map(file => {
+        const relativePath = (file as any).webkitRelativePath || file.name;
+        return new File([file], `uploads/${relativePath}`, {
+          type: file.type,
+          lastModified: file.lastModified,
+        });
+      });
+      addFiles(filesWithPath);
       toast({
         title: "Folder uploaded successfully",
-        description: `${files.length} file(s) from folder have been uploaded.`,
+        description: `${files.length} file(s) from folder have been uploaded to uploads folder.`,
       });
     }
   };
@@ -111,7 +126,7 @@ const FileUploadZone = () => {
         <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">Drop files here</h3>
         <p className="text-muted-foreground mb-4">
-          Drag and drop files or folders to upload them instantly
+          Drag and drop files or folders to upload them to the uploads folder
         </p>
         <p className="text-sm text-muted-foreground">
           Supports all file types • No size restrictions

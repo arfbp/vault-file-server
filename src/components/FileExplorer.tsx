@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   File, 
@@ -7,7 +8,8 @@ import {
   Download, 
   Eye,
   FileText,
-  Archive
+  Archive,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +75,11 @@ const FileExplorer = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleOpenInNewTab = (file: any) => {
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank');
   };
 
   const canPreview = (file: any) => {
@@ -163,7 +170,15 @@ const FileExplorer = () => {
                         <p className="text-xs text-muted-foreground">{file.type || 'Unknown'}</p>
                       </div>
                       
-                      <div className="flex items-center space-x-2 mt-3">
+                      <div className="flex items-center space-x-2 mt-3 flex-wrap">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenInNewTab(file)}
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          Open
+                        </Button>
                         {canPreview(file) && (
                           <Button
                             size="sm"
