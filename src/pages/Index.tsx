@@ -70,7 +70,7 @@ const Index = () => {
                       <span className="text-sm">Images</span>
                     </div>
                     <span className="font-semibold">
-                      {files.filter(f => f.type.startsWith('image/')).length}
+                      {files.filter(f => f.type && f.type.startsWith('image/')).length}
                     </span>
                   </div>
                   
@@ -80,7 +80,7 @@ const Index = () => {
                       <span className="text-sm">Videos</span>
                     </div>
                     <span className="font-semibold">
-                      {files.filter(f => f.type.startsWith('video/')).length}
+                      {files.filter(f => f.type && f.type.startsWith('video/')).length}
                     </span>
                   </div>
                 </div>
