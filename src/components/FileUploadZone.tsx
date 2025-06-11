@@ -51,10 +51,9 @@ const FileUploadZone = () => {
     return new Promise<void>((resolve) => {
       if (entry.isFile) {
         entry.file((file: File) => {
-          // Create a new file object with the uploads path
-          const fileWithPath = new File([file], `${basePath}/${entry.fullPath.slice(1) || file.name}`, {
-            type: file.type,
-            lastModified: file.lastModified,
+          // Create a file with the path information stored as a property
+          const fileWithPath = Object.assign(file, {
+            name: `${basePath}/${entry.fullPath.slice(1) || file.name}`
           });
           files.push(fileWithPath);
           resolve();
@@ -76,11 +75,10 @@ const FileUploadZone = () => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      // Add uploads/ prefix to individual files
+      // Add uploads/ prefix to individual files by modifying the name property
       const filesWithPath = files.map(file => 
-        new File([file], `uploads/${file.name}`, {
-          type: file.type,
-          lastModified: file.lastModified,
+        Object.assign(file, {
+          name: `uploads/${file.name}`
         })
       );
       addFiles(filesWithPath);
@@ -97,9 +95,8 @@ const FileUploadZone = () => {
       // Keep the webkitRelativePath for folder uploads, but add uploads prefix
       const filesWithPath = files.map(file => {
         const relativePath = (file as any).webkitRelativePath || file.name;
-        return new File([file], `uploads/${relativePath}`, {
-          type: file.type,
-          lastModified: file.lastModified,
+        return Object.assign(file, {
+          name: `uploads/${relativePath}`
         });
       });
       addFiles(filesWithPath);
